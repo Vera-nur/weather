@@ -9,14 +9,26 @@ import SwiftUI
 
 struct ContentView: View {
     var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, world!")
+        VStack{
+            Text("Test")
+                .onAppear{
+                    Task{
+                        await testWeatherAPI()
+                    }
+                }
         }
-        .padding()
     }
+    
+    func testWeatherAPI() async {
+            do {
+                let weather = try await WeatherService.fetchWeather(for: "İstanbul")
+                print("✅ Şehir: \(weather.name)")
+                print("🌡️ Sıcaklık: \(weather.main.temp)°C")
+                print("📝 Açıklama: \(weather.weather.first?.description ?? "-")")
+            } catch {
+                print("❌ Hata oluştu: \(error.localizedDescription)")
+            }
+        }
 }
 
 #Preview {
