@@ -17,16 +17,21 @@ struct WeatherScreen: View {
                     .font(.title2)
                     .bold()
 
-                TextField("Enter city", text: $viewModel.city)
-                    .textFieldStyle(RoundedBorderTextFieldStyle())
-                    .padding(.horizontal)
-
-                Button("Show Weather") {
-                    Task {
+                HStack {
+                    TextField("Enter city", text: $viewModel.citySearchInput)
+                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                    
+                    Button(action: {
                         viewModel.fetchWeather()
+                    }){
+                        Image(systemName: "magnifyingglass")
+                            .foregroundColor(.white)
+                            .padding(10)
+                            .background(Color.blue)
+                            .clipShape(Circle())
                     }
-                }
-                .foregroundColor(.blue)
+                }.padding(.horizontal)
+
             }
             .padding(.top, 20)
 

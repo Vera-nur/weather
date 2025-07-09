@@ -13,6 +13,7 @@ class WeatherViewModel: ObservableObject {
     
     private var locationManager: LocationManager?
 
+    @Published var citySearchInput: String = ""
     @Published var city: String = ""
     @Published var temperature: String = ""
     @Published var description: String = ""
@@ -54,14 +55,15 @@ class WeatherViewModel: ObservableObject {
     }
     
     func fetchWeather() {
-        guard !city.trimmingCharacters(in: .whitespaces).isEmpty else {
+        let trimmedCity = citySearchInput.trimmingCharacters(in: .whitespaces)
+        guard !trimmedCity.isEmpty else {
             self.showError("Please enter a city name")
             return
         }
 
         self.prepareForLoading()
 
-        WeatherService.fetchWeather(for: city) { [weak self] result in
+        WeatherService.fetchWeather(for: trimmedCity) { [weak self] result in
             guard let self = self else { return }
 
             DispatchQueue.main.async {
@@ -91,6 +93,7 @@ class WeatherViewModel: ObservableObject {
     }
 
     private func updateUI(with data: WeatherResponse) {
+        city = data.name
         temperature = String(format: "%.1f°C", data.main.temp)
         description = data.weather.first?.description ?? "No description"
         icon = getIconName(for: data.weather.first?.icon ?? "")
