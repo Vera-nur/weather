@@ -7,8 +7,11 @@
 
 import Foundation
 import SwiftUI
+import CoreLocation
 
 class WeatherViewModel: ObservableObject {
+    
+    private var locationManager: LocationManager?
 
     @Published var city: String = ""
     @Published var temperature: String = ""
@@ -22,7 +25,35 @@ class WeatherViewModel: ObservableObject {
     @Published var minTemp: String = ""
     @Published var backgroundColor: Color = Color.gray.opacity(0.1)
     
-    func fetchWeather() async {
+    func getWeatherForCurrentLocation() {
+        locationManager = LocationManager()
+        locationManager?.onLocationFix = { [weak self] location in
+            guard let self = self else { return }
+            self.fetchWeatherByLocation(latitude: location.coordinate.latitude,
+                                        longitude: location.coordinate.longitude)
+        }
+    }
+    
+    func fetchWeatherByLocation(latitude: CLLocationDegrees, longitude: CLLocationDegrees) {
+        self.prepareForLoading()
+
+        WeatherService.fetchWeatherByCoordinates(lat: latitude, lon: longitude) { [weak self] result in
+            guard let self = self else { return }
+
+            DispatchQueue.main.async {
+                self.isLoading = false
+
+                switch result {
+                case .success(let weatherData):
+                    self.updateUI(with: weatherData)
+                case .failure(let error):
+                    self.handleError(error)
+                }
+            }
+        }
+    }
+    
+    func fetchWeather() {
         guard !city.trimmingCharacters(in: .whitespaces).isEmpty else {
             self.showError("Please enter a city name")
             return
@@ -35,7 +66,7 @@ class WeatherViewModel: ObservableObject {
 
             DispatchQueue.main.async {
                 self.isLoading = false
-                
+
                 switch result {
                 case .success(let weatherData):
                     self.updateUI(with: weatherData)
